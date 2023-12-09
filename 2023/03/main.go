@@ -18,7 +18,7 @@ func main() {
 	rows := strings.Split(string(input), "\n")
 	numbers := []Number{}
 	for i := range rows {
-		ns := parseNumbersFromLine(rows, i)
+		ns := parseNumbersFromLine(&rows, i)
 		numbers = append(numbers, ns...)
 	}
 	var partNumbers []int
@@ -35,24 +35,24 @@ func main() {
 	fmt.Println("Total", sum(partNumbers))
 }
 
-func parseNumbersFromLine(lines []string, lineIndex int) []Number {
-	line := lines[lineIndex]
-	splitLine := strings.Split(line, "")
+func parseNumbersFromLine(rows *[]string, lineIndex int) []Number {
+	row := (*rows)[lineIndex]
+	splitRow := strings.Split(row, "")
 	var matrices = []Number{}
 	startIndex := 0
 	digitCache := ""
 
-	for i, char := range splitLine {
-		isEoL := i == len(splitLine)-1
+	for i, char := range splitRow {
+		isEoL := i == len(splitRow)-1
 		if isDigit(char) {
 			if digitCache == "" {
 				startIndex = i
 			}
 			digitCache += char
-			if isEoL || !isDigit(splitLine[i+1]) {
+			if isEoL || !isDigit(splitRow[i+1]) {
 				value, _ := strconv.Atoi(digitCache)
 				fmt.Println("Found:", value)
-				boxValues := getBoxValues(lines, lineIndex, startIndex, i)
+				boxValues := getBoxValues(rows, lineIndex, startIndex, i)
 				fmt.Println("Box:", boxValues)
 
 				matrices = append(matrices, Number{value, startIndex, boxValues})
@@ -63,32 +63,31 @@ func parseNumbersFromLine(lines []string, lineIndex int) []Number {
 	return matrices
 }
 
-func getBoxValues(lines []string, lineIndex int, startIndex int, endIndex int) []string {
-	fmt.Println("Line:", lineIndex, "Start:", startIndex, "End:", endIndex)
+func getBoxValues(rows *[]string, lineIndex int, startIndex int, endIndex int) []string {
 	var boxValues = []string{}
-	currentLine := strings.Split(lines[lineIndex], "")
+	row := strings.Split((*rows)[lineIndex], "")
 	sliceStart := max(startIndex-1, 0)
-	sliceEnd := min(endIndex+1, len(currentLine)-1)
+	sliceEnd := min(endIndex+1, len(row)-1)
 
 	// Get above line values
 	if lineIndex != 0 {
-		line := strings.Split(lines[lineIndex-1], "")
+		line := strings.Split((*rows)[lineIndex-1], "")
 		for i := sliceStart; i <= sliceEnd; i++ {
 			boxValues = append(boxValues, line[i])
 		}
 	}
 	// Get current line values
 	if startIndex != 0 {
-		boxValues = append(boxValues, currentLine[sliceStart])
+		boxValues = append(boxValues, row[sliceStart])
 	}
 
-	if endIndex != len(currentLine)-1 {
-		boxValues = append(boxValues, currentLine[sliceEnd])
+	if endIndex != len(row)-1 {
+		boxValues = append(boxValues, row[sliceEnd])
 	}
 
 	// Get below line values
-	if lineIndex != len(lines)-1 {
-		line := strings.Split(lines[lineIndex+1], "")
+	if lineIndex != len(*rows)-1 {
+		line := strings.Split((*rows)[lineIndex+1], "")
 		for i := sliceStart; i <= sliceEnd; i++ {
 			boxValues = append(boxValues, line[i])
 		}
