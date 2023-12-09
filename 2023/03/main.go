@@ -17,9 +17,9 @@ func main() {
 	input, _ := os.ReadFile("example.txt")
 	rows := strings.Split(string(input), "\n")
 	numbers := []Number{}
+	stars := [][2]int{}
 	for i := range rows {
-		ns := parseNumbersFromLine(&rows, i)
-		numbers = append(numbers, ns...)
+		parseNumbersFromLine(&rows, &numbers, &stars, i)
 	}
 	var partNumbers []int
 	for _, n := range numbers {
@@ -33,17 +33,22 @@ func main() {
 	// 521515 < after fixing sliceEnd value
 	fmt.Println(partNumbers)
 	fmt.Println("Total", sum(partNumbers))
+
+	// Part 2
+	fmt.Println("Stars", stars)
 }
 
-func parseNumbersFromLine(rows *[]string, lineIndex int) []Number {
+func parseNumbersFromLine(rows *[]string, numbers *[]Number, stars *[][2]int, lineIndex int) {
 	row := (*rows)[lineIndex]
 	splitRow := strings.Split(row, "")
-	var matrices = []Number{}
 	startIndex := 0
 	digitCache := ""
 
 	for i, char := range splitRow {
 		isEoL := i == len(splitRow)-1
+		if char == "*" {
+			*stars = append(*stars, [2]int{lineIndex, i})
+		}
 		if isDigit(char) {
 			if digitCache == "" {
 				startIndex = i
@@ -51,16 +56,13 @@ func parseNumbersFromLine(rows *[]string, lineIndex int) []Number {
 			digitCache += char
 			if isEoL || !isDigit(splitRow[i+1]) {
 				value, _ := strconv.Atoi(digitCache)
-				fmt.Println("Found:", value)
 				boxValues := getBoxValues(rows, lineIndex, startIndex, i)
-				fmt.Println("Box:", boxValues)
 
-				matrices = append(matrices, Number{value, startIndex, boxValues})
+				*numbers = append(*numbers, Number{value, startIndex, boxValues})
 				digitCache = ""
 			}
 		}
 	}
-	return matrices
 }
 
 func getBoxValues(rows *[]string, lineIndex int, startIndex int, endIndex int) []string {
