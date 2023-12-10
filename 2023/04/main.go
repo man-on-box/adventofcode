@@ -44,6 +44,13 @@ func main() {
 		total += game.score()
 	}
 	fmt.Println("Total:", total)
+
+	copy := games[0].copy()
+	copy.value = append(copy.value, 100)
+
+	fmt.Println(games[0].value)
+	fmt.Println(copy.value)
+
 }
 
 func newGame() Game {
@@ -74,6 +81,10 @@ func (g Game) score() int {
 		}
 	}
 	return score
+}
+
+func (g Game) copy() Game {
+	return g
 }
 
 func sum(numbers []int) int {
