@@ -8,70 +8,118 @@ import (
 	"strings"
 )
 
-type Game struct {
+type card struct {
 	winValues map[int]bool
 	value     []int
 }
 
+type CardSet struct {
+	cards []card
+}
+
 func main() {
-	input, _ := os.ReadFile("input.txt")
+	input, _ := os.ReadFile("example.txt")
 	lines := strings.Split(string(input), "\n")
 	cardRegx := regexp.MustCompile(`Card \d+:`)
 	spaceRegx := regexp.MustCompile(`\s+`)
-	games := []Game{}
+	cardSet := newCardSet()
 	for _, line := range lines {
 		line = cardRegx.ReplaceAllString(line, "")
 		line = spaceRegx.ReplaceAllString(strings.TrimSpace(line), ",")
 		split := strings.Split(line, ",|,")
-		game := newGame()
+		card := newCard()
 
 		for _, d := range strings.Split(split[0], ",") {
 			v, _ := strconv.Atoi(d)
-			game.winValues[v] = true
+			card.winValues[v] = true
 		}
 		for _, d := range strings.Split(split[1], ",") {
 			v, _ := strconv.Atoi(d)
-			game.value = append(game.value, v)
+			card.value = append(card.value, v)
 
 		}
 
-		games = append(games, game)
+		cardSet.cards = append(cardSet.cards, card)
 	}
 
 	// Part 1 = 23750
 	total := 0
-	for _, game := range games {
+	for _, game := range cardSet.cards {
 		total += game.score()
 	}
 	fmt.Println("Total:", total)
 
-	copy := games[0].copy()
-	copy.value = append(copy.value, 100)
+	// Part 2
+	cardCount := 0
+	toProcess := []CardSet{cardSet}
+	for len(toProcess) > 0 {
+		set := toProcess[0]
+		toProcess = toProcess[1:]
+		winningSets := set.getWinningCopies()
+		fmt.Println("No of winning sets:", len(winningSets))
+		if len(winningSets) > 0 {
+			for _, s := range winningSets {
+				wonCards := len(s.cards)
+				fmt.Println("Won cards:", wonCards)
+				cardCount += len(s.cards)
+			}
+			toProcess = append(toProcess, winningSets...)
+		}
 
-	fmt.Println(games[0].value)
-	fmt.Println(copy.value)
+	}
+	fmt.Println("No of cards:", cardCount)
 
 }
 
-func newGame() Game {
-	return Game{
+func newCardSet() CardSet {
+	return CardSet{
+		cards: []card{},
+	}
+}
+
+func (cs CardSet) getWinningCopies() []CardSet {
+	winningSets := []CardSet{}
+	for i, c := range cs.cards {
+		score := len(c.winnings())
+		if score > 0 {
+			winningSet := newCardSet()
+			start := i + 1
+			end := start + len(c.winnings())
+			fmt.Println("SCORE", score, "Start:", start, "End:", end, "Len:", len(cs.cards))
+			for j := start; j < end; j++ {
+				if j >= len(cs.cards) {
+					break
+				}
+				winningSet.cards = append(winningSet.cards, cs.cards[j])
+			}
+			winningSets = append(winningSets, winningSet)
+		} else {
+			continue
+		}
+
+	}
+	return winningSets
+}
+
+func newCard() card {
+	return card{
 		winValues: map[int]bool{},
 		value:     []int{},
 	}
 }
 
-func (g Game) winnings() []int {
+func (c card) winnings() []int {
 	numbers := []int{}
-	for _, n := range g.value {
-		if _, ok := g.winValues[n]; ok {
+	for _, n := range c.value {
+		if _, ok := c.winValues[n]; ok {
 			numbers = append(numbers, n)
 		}
 	}
 	return numbers
 }
 
-func (g Game) score() int {
-	winningNumbers := g.winnings()
+func (c card) score() int {
+	winningNumbers := c.winnings()
 	score := 0
 	for i := range winningNumbers {
 		if i > 0 {
@@ -83,8 +131,8 @@ func (g Game) score() int {
 	return score
 }
 
-func (g Game) copy() Game {
-	return g
+func (c card) copy() card {
+	return c
 }
 
 func sum(numbers []int) int {
