@@ -10,8 +10,9 @@ import (
 
 func main() {
 	content, _ := os.ReadFile("input.txt")
-	lines := strings.Split(string(content), "\n")
-	noOfValues := len(lines) - 1
+	input := strings.TrimSpace(string(content))
+	lines := strings.Split(input, "\n")
+	noOfValues := len(lines)
 	leftArr := make([]int, noOfValues)
 	rightArr := make([]int, noOfValues)
 	diffArr := make([]int, noOfValues)
@@ -24,7 +25,7 @@ func main() {
 		if len(l) == 0 {
 			break
 		}
-		values := strings.Split(l, "   ")
+		values := strings.Fields(l)
 		leftValue, _ := strconv.Atoi(values[0])
 		rightValue, _ := strconv.Atoi(values[1])
 
@@ -33,12 +34,7 @@ func main() {
 		rightArr[i] = rightValue
 
 		// part 2
-		count, has := rightMap[rightValue]
-		if has {
-			rightMap[rightValue] = count + 1
-		} else {
-			rightMap[rightValue] = 1
-		}
+		rightMap[rightValue]++
 	}
 
 	slices.Sort(leftArr)
@@ -55,17 +51,12 @@ func main() {
 		diffArr[i] = diff
 
 		// part 2
-		count, has := rightMap[leftValue]
-		if has {
-			score := leftValue * count
-			similarityScore += score
-		}
-
+		similarityScore += leftValue * rightMap[leftValue]
 	}
 
 	// Answer part 1: 2378066
-	fmt.Println(diffTotal)
+	fmt.Println("Part 1:", diffTotal)
 
-	// Answer part 2:
-	fmt.Println(similarityScore)
+	// Answer part 2: 18934359
+	fmt.Println("Part 2:", similarityScore)
 }
