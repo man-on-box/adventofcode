@@ -18,7 +18,8 @@ func main() {
 	content, _ := os.ReadFile("input.txt")
 	input := strings.TrimSpace(string(content))
 
-	mulValues := [][]int{}
+	pt1Total := 0
+	pt2Total := 0
 
 	// part 2
 	mulEnabled := true
@@ -41,8 +42,11 @@ func main() {
 			if endIndex > 0 {
 				potentialParams := subStr[startIndex+len(startStr) : startIndex+endIndex]
 				isValid, params := parseParams(potentialParams)
+				if isValid {
+					pt1Total += params[0] * params[1]
+				}
 				if isValid && mulEnabled {
-					mulValues = append(mulValues, params)
+					pt2Total += params[0] * params[1]
 				}
 			}
 			// increment search index with addition
@@ -54,14 +58,10 @@ func main() {
 		}
 	}
 
-	total := 0
-	for _, v := range mulValues {
-		total += v[0] * v[1]
-	}
-
 	// Part 1 answer: 185797128
+	fmt.Println("Part 1 total:", pt1Total)
 	// Part 2 answer: 89798695
-	fmt.Println("Total:", total)
+	fmt.Println("Part 2 total:", pt2Total)
 }
 
 // takes a slice of strings and parses the params
