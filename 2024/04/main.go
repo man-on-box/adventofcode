@@ -30,7 +30,7 @@ var diagonals = []point{
 	{-1, 1},  // down left
 }
 
-func findWord(word string, wordsearch *[][]string, p point, d point, wordIndex int) bool {
+func findWord(word string, wordsearch *[][]rune, p point, d point, wordIndex int) bool {
 	ws := *wordsearch
 	// BASE CASES
 	// are we off the table?
@@ -41,7 +41,7 @@ func findWord(word string, wordsearch *[][]string, p point, d point, wordIndex i
 		return false
 	}
 	// is the char not what we are looking for?
-	if ws[p.y][p.x] != string(word[wordIndex]) {
+	if ws[p.y][p.x] != rune(word[wordIndex]) {
 		return false
 	}
 	// have we found the word?
@@ -60,13 +60,13 @@ func main() {
 	content, _ := os.ReadFile("input.txt")
 	input := strings.TrimSpace(string(content))
 	lines := strings.Split(input, "\n")
-	wordsearch := make([][]string, len(lines))
+	wordsearch := make([][]rune, len(lines))
 
 	pt1Total := 0
 	pt2Total := 0
 
 	for i, line := range lines {
-		row := strings.Split(line, "")
+		row := []rune(line)
 		wordsearch[i] = row
 	}
 
@@ -81,7 +81,7 @@ func main() {
 			}
 
 			// part 2
-			if char == "A" {
+			if char == 'A' {
 				masCount := 0
 				for _, d := range diagonals {
 					startPoint := point{
