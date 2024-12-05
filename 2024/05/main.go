@@ -39,7 +39,7 @@ func main() {
 	for _, u := range updates {
 		isNotValid := false
 		for i := 0; i < len(u); i++ {
-			for j := i; j < len(u); j++ {
+			for j := i + 1; j < len(u); j++ {
 				current := u[i]
 				compared := u[j]
 				if orderings[current] != nil {
