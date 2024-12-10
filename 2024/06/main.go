@@ -18,96 +18,117 @@ var directions = []point{
 	{-1, 0},
 }
 
-var pt2Total = 0
-
-func move(grid *[][]rune, seen *map[point]struct{}, seenLoop *map[point]struct{}, curr point, turns int) bool {
-	g := *grid
-	s := *seen
-	// BASE CASES
-	// are we off the map? Then we're done
-	if curr.x < 0 || curr.x > len(g[0])-1 || curr.y < 0 || curr.y > len(g)-1 {
-		return true
-	}
-	// is our point an obstacle? If YES then we can't go further
-	if g[curr.y][curr.x] == '#' {
-		return false
-	}
-
-	// Otherwise we keep going
-	d := directions[turns%len(directions)]
-
-	nextPoint := point{
-		x: curr.x + d.x,
-		y: curr.y + d.y,
-	}
-	result := move(grid, seen, seenLoop, nextPoint, turns)
-
-	if result == false {
-		// then we hit an obstacle, lets turn right and go again
-		return move(grid, seen, seenLoop, curr, turns+1)
-	}
-
-	if seenLoop != nil {
-		// then we are checking if we get in a loop
-		sl := *seenLoop
-		_, looped := sl[curr]
-		if looped {
-			// fmt.Println("Loop at...", curr)
-			pt2Total++
-			return true
-		}
-	}
-
-	// pt 2, simulate a loop if we have been here before
-	_, beenHere := s[curr]
-	if seenLoop == nil && beenHere {
-		sl := map[point]struct{}{}
-		sl[curr] = struct{}{}
-		// fmt.Println("Checking loop from", curr)
-		move(grid, seen, &sl, curr, turns+1)
-	}
-
-	// post recursion
-	// we walked this point so append to our seen map
-	if seenLoop != nil {
-		sl := *seenLoop
-		sl[curr] = struct{}{}
-	} else {
-		s[curr] = struct{}{}
-	}
-
-	return true
-
-}
-
 func main() {
-	f, _ := os.ReadFile("example.txt")
+	f, _ := os.ReadFile("input.txt")
 	input := strings.TrimSpace(string(f))
 	lines := strings.Split(input, "\n")
 	grid := make([][]rune, len(lines))
-	seen := map[point]struct{}{}
-	var startPoint *point
+	seen := map[point]bool{}
+	placedObstacles := map[point]bool{}
+
+	startPoint := point{-1, -1}
 
 	for i, l := range lines {
 		row := []rune(l)
 		grid[i] = row
-		if startPoint != nil {
+		if startPoint.x > 0 {
 			continue
 		}
 		for j, r := range row {
 			if r == '^' {
-				startPoint = &point{
-					x: j,
-					y: i,
-				}
+				startPoint.x = j
+				startPoint.y = i
 			}
 		}
 	}
 
-	move(&grid, &seen, nil, *startPoint, 0)
+	current := startPoint
+	direction := 0
+
+	for {
+		seen[current] = true
+		dOuter := directions[direction]
+		next := point{
+			x: current.x + dOuter.x,
+			y: current.y + dOuter.y,
+		}
+
+		// check if we made it off the map
+		if next.x < 0 ||
+			next.x > len(grid[0])-1 ||
+			next.y < 0 ||
+			next.y > len(grid)-1 {
+			break
+		}
+
+		// are we hitting a wall? Then we just change direction
+		if grid[next.y][next.x] == '#' {
+			direction = (direction + 1) % 4
+			continue
+		}
+
+		// otherwise move to next point
+		current = next
+
+	}
 
 	pt1DistinctSteps := len(seen)
-
+	// Part 1 = 5531
 	fmt.Println("Part 1:", pt1DistinctSteps)
-	fmt.Println("Part 2:", pt2Total)
+
+	// Now we go through each place the guard visited,
+	// and we place an obstacle, to see if we get a loop
+	for p := range seen {
+		// if we're not a point, we pass over it
+		if grid[p.y][p.x] != '.' {
+			continue
+		}
+
+		guardCurrent := startPoint
+		guardDirection := 0
+		guardSeen := map[[3]int]bool{}
+
+		// we set the current to a wall
+		grid[p.y][p.x] = '#'
+
+		for {
+			state := [3]int{guardCurrent.x, guardCurrent.y, guardDirection}
+			if guardSeen[state] {
+				placedObstacles[p] = true
+				break
+			}
+
+			guardSeen[state] = true
+			d := directions[guardDirection%4]
+			guardNext := point{
+				x: guardCurrent.x + d.x,
+				y: guardCurrent.y + d.y,
+			}
+
+			// check if we made it off the map
+			if guardNext.x < 0 ||
+				guardNext.x > len(grid[0])-1 ||
+				guardNext.y < 0 ||
+				guardNext.y > len(grid)-1 {
+				break
+			}
+
+			// are we hitting a wall? Then we just change direction
+			if grid[guardNext.y][guardNext.x] == '#' {
+				guardDirection = (guardDirection + 1) % 4
+				continue
+			}
+
+			guardCurrent = guardNext
+
+		}
+
+		// reset the value back to a point
+		grid[p.y][p.x] = '.'
+
+	}
+
+	// part 2 = 2165
+	fmt.Println("Part 2:", len(placedObstacles))
+
 }
