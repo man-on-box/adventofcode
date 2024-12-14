@@ -27,7 +27,7 @@ func evaluate(target int, values []int, concat bool) bool {
 	if evaluate(target, slices.Concat([]int{values[0] * values[1]}, values[2:]), concat) {
 		return true
 	}
-	// for part two, we'll try concatenating also with a 3rd branch
+	// for part two, we'll try concatenating also
 	if concat {
 		concatVal, _ := strconv.Atoi(strconv.Itoa(values[0]) + strconv.Itoa(values[1]))
 		if evaluate(target, slices.Concat([]int{concatVal}, values[2:]), concat) {
